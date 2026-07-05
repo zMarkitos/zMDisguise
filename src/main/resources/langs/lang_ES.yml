@@ -1,0 +1,73 @@
+# ======================================================== #
+#               zMDisguise - Idioma Español                #
+# ======================================================== #
+
+prefix: "<b><gradient:#00D76B:#00FF7F:#00D76B><b>zMDisguise</b></gradient></b> &8| &r"
+
+messages:
+  no-permission: "{prefix_plugin}&fNo tienes permisos para realizar esta acción. &#FF4444✗"
+  only-players: "{prefix_plugin}&fEste comando solo puede ser ejecutado por jugadores. &#FF4444✗"
+  reloaded: "{prefix_plugin}&fPlugin recargado correctamente. &#00FF7F✔"
+
+  saved-success: "{prefix_plugin}&fDisfraz guardado exitosamente como: &#FFD700{name} &#00FF7F✔"
+  must-be-disguised: "{prefix_plugin}&fDebes estar disfrazado para guardar un disfraz. &#FF4444✗"
+  disguised-success: "{prefix_plugin}&fAhora eres &#FFD700{prefix}{name}&f. &#00FF7F✔"
+  undisguised-success: "{prefix_plugin}&fHas vuelto a tu identidad original. &#00FF7F✔"
+  already-disguised: "{prefix_plugin}&fYa estás disfrazado. Usa /undisguise primero. &#FF8C00⚠"
+  not-disguised: "{prefix_plugin}&fNo estás disfrazado actualmente. &#FF8C00⚠"
+
+  player-not-found: "{prefix_plugin}&fNo se encontró al jugador &#FFD700{name}&f. &#FF4444✗"
+  target-not-online: "{prefix_plugin}&fEl jugador &#FFD700{name}&f no está conectado. &#FF4444✗"
+  name-taken: "{prefix_plugin}&fEl nombre &#FFD700{name}&f ya está en uso por otro jugador conectado. &#FF4444✗"
+  disguised-other: "{prefix_plugin}&fHas disfrazado a &#FFD700{real_name}&f como &#FFD700{name}&f. &#00FF7F✔"
+  undisguised-other: "{prefix_plugin}&fHas quitado el disfraz de &#FFD700{real_name}&f. &#00FF7F✔"
+  no-disguised-players: "{prefix_plugin}&fNo hay jugadores disfrazados en este momento. &#FF8C00⚠"
+  admin-notify: "{prefix_plugin}&#FFD700{real_name} &fse ha disfrazado como &#FFD700{name}&f."
+
+  copied-player: "{prefix_plugin}&fHas copiado la identidad de &#FFD700{name}&f. &#00FF7F✔"
+  rank-selected: "{prefix_plugin}&fRango visual cambiado a &#FFD700{group}&f. &#00FF7F✔"
+
+  player-disconnected: "&#FF4444El jugador ya no está conectado."
+  teleported-to: "&#00FF7FTeletransportado a &#FFD700{name}&#00FF7F."
+
+  help:
+    - "&#8B8B8B&m----------------------------------------"
+    - "               &#00FF7FzMDisguise Help"
+    - ""
+    - "  &#00FF7F/disguise &#8B8B8B- &fAbre el menú principal."
+    - "  &#00FF7F/disguise <jugador> <nombre> &#8B8B8B- &fDisfraza a un jugador."
+    - "  &#00FF7F/disguise save <nombre> &#8B8B8B- &fGuarda tu disfraz actual."
+    - "  &#00FF7F/undisguise [jugador] &#8B8B8B- &fElimina un disfraz."
+    - "  &#00FF7F/zmdisguise reload &#8B8B8B- &fRecarga la configuración."
+    - "  &#00FF7F/zmdisguise whois <nombre> &#8B8B8B- &fDescubre quién se esconde."
+    - "&#8B8B8B&m----------------------------------------"
+
+  update-notify:     "{prefix_plugin}<click:open_url:'{link}'>&f¡Hay una nueva actualización disponible! &7(v{version}) &e&nClica aquí para descargarla</click>"
+
+gui-lore:
+  click-copy: "&#00D76B▶ &fClic para copiar identidad"
+  click-equip: "&#00D76B▶ &fClic para equipar disfraz"
+  click-delete: "&#FF4444[Q] &fClic derecho para eliminar"
+  click-teleport: "&#00D76B▶ &fClic para teletransportarse"
+  loading: "&#FFD700Cargando..."
+  uuid: "  &8UUID: &#555555{uuid}"
+  rank: "  &fRango: "
+  name: "  &fNombre: &e{name}"
+  real-name: "  &fNombre real: &f{name}"
+  disguise: "  &fDisfraz: &#00D76B{name}"
+  group: "  &fGrupo: &#FFD700{group}"
+  extra-ranks: "  &fRangos extra: &#FFD700{amount}"
+  time: "  &fTiempo: &9{time}"
+  world: "  &fMundo: &a{world}"
+  pos: "  &fPos: &b{x}, {y}, {z}"
+
+gui-items:
+  back: "&#FF4444✗ &fVolver"
+  next: "&#00FF7F&#FFFFFFSiguiente página &#00FF7F▶"
+  previous: "&#FF8C00◀ &#FFFFFFPágina anterior"
+
+update-title:
+  title: "<gradient:#00D76B:#00FF7F>zMDisguise | Update</gradient>"
+  subtitle: "&7{old_version} &8→ &f{new_version}"
+
+message-version: 1

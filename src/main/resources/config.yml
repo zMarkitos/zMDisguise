@@ -1,0 +1,70 @@
+# ======================================================== #
+#              zMDisguise by zMarkitos_                    #
+# ======================================================== #
+# A modern, lightweight and reliable disguise system
+# for Paper servers with seamless skin integration.
+#
+# • Fast Skin Caching
+# • BossBar & ActionBar Support
+# • LuckPerms Prefix Integration
+# • Placeholder Support
+# • Optimized Performance
+# • Fully Configurable
+#
+# Compatible with Paper 1.19+
+# ======================================================== #
+
+# Do not modify
+config-version: 1
+
+# Plugin language (matches files inside the langs/ folder).
+# Example: 'ES' -> lang_ES.yml | 'EN' -> lang_EN.yml
+language: 'EN'
+
+# Keep the disguise after reconnecting.
+keep-disguise-on-relog: true
+
+# Notify players with the zmdisguise.notify permission when someone disguises.
+notify-admins: true
+
+# ======================================================== #
+#                         BossBar                          #
+# ======================================================== #
+bossbar:
+  enabled: true
+
+  # Available placeholders:
+  # {name}, {real_name}, {prefix}, {suffix}, {group}
+  # Supports HEX colors: &#RRGGBB
+  title: "&fDisguised as: {prefix}&#FFD700{name}"
+
+  # Available: PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE
+  color: "YELLOW"
+
+  # Available: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
+  style: "SOLID"
+
+  # BossBar progress (0.0 - 1.0)
+  progress: 1.0
+
+  # Refresh interval in ticks (20 ticks = 1 second).
+  update-interval: 20
+
+# ======================================================== #
+#                        ActionBar                         #
+# ======================================================== #
+actionbar:
+  enabled: true
+
+  # Supports the same placeholders as the BossBar.
+  message: "&fYou are currently disguised as: {prefix}&#FFD700{name}"
+
+  # Refresh interval in ticks (20 ticks = 1 second).
+  update-interval: 20
+
+# ======================================================== #
+#                       Performance                        #
+# ======================================================== #
+performance:
+  # Internal skin cache cleanup interval (ticks).
+  skin-cache-clear-interval: 6000

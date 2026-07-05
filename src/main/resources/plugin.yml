@@ -1,0 +1,30 @@
+name: zMDisguise
+version: '${project.version}'
+main: dev.zm.disguise.zMDisguise
+api-version: 1.19
+softdepend: [PlaceholderAPI, LuckPerms, SkinsRestorer]
+author: zMarkitos_
+description: Lightweight disguise plugin for Paper - real player skins, names, LuckPerms groups and admin GUI.
+
+commands:
+  zmdisguise:
+    description: Admin command for zMDisguise
+  disguise:
+    description: Main command to disguise
+    aliases: [d]
+  undisguise:
+    description: Remove your current disguise
+
+permissions:
+  zmdisguise.use:
+    description: Allows using disguises on yourself
+    default: op
+  zmdisguise.admin:
+    description: Allows disguising other players and admin menus
+    default: op
+  zmdisguise.notify:
+    description: Receive admin notifications when someone is disguised
+    default: op
+  zmdisguise.reload:
+    description: Allows reloading the plugin configuration
+    default: op
