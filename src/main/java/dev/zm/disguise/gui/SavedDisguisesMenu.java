@@ -39,13 +39,11 @@ public class SavedDisguisesMenu implements Menu, Listener {
     }
 
     public void openAsync() {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getScheduler().runTaskAsync(plugin, () -> {
             savedProfiles = plugin.getStorageService().getSavedProfiles(viewer.getUniqueId());
             savedNames = new ArrayList<>(savedProfiles.keySet());
 
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                open(viewer);
-            });
+            plugin.getScheduler().runTask(plugin, () -> open(viewer));
         });
     }
 
@@ -155,11 +153,11 @@ public class SavedDisguisesMenu implements Menu, Listener {
         String saveName = savedNames.get(slot);
 
         if (event.getClick() == ClickType.DROP) {
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            plugin.getScheduler().runTaskAsync(plugin, () -> {
                 plugin.getStorageService().deleteSavedProfile(viewer.getUniqueId(), saveName);
                 savedNames.remove(saveName);
                 savedProfiles.remove(saveName);
-                Bukkit.getScheduler().runTask(plugin, this::buildPage);
+                plugin.getScheduler().runTask(plugin, this::buildPage);
             });
             return;
         }

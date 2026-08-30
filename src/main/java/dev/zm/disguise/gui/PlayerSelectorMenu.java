@@ -50,7 +50,7 @@ public class PlayerSelectorMenu implements Menu, Listener {
 
     /** Starts async player loading and opens the menu when done. */
     public void openAsync() {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getScheduler().runTaskAsync(plugin, () -> {
             java.util.Set<java.util.UUID> uuids = new java.util.HashSet<>();
             List<OfflinePlayer> all = new ArrayList<>();
             for (Player p : Bukkit.getOnlinePlayers()) {
@@ -72,9 +72,7 @@ public class PlayerSelectorMenu implements Menu, Listener {
 
             this.players.addAll(all);
 
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                open(viewer);
-            });
+            plugin.getScheduler().runTask(plugin, () -> open(viewer));
         });
     }
 
@@ -116,14 +114,14 @@ public class PlayerSelectorMenu implements Menu, Listener {
         inventory.setItem(49,
                 buildSimpleItem(Material.BARRIER, plugin.getMessageManager().getString("gui-items.back")));
 
-        // Load skulls asynchronously
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        // Load skulls asynchronously (Folia-safe via SchedulerAdapter)
+        plugin.getScheduler().runTaskAsync(plugin, () -> {
             int start = page * PAGE_SIZE;
             List<ItemStack> skulls = new ArrayList<>();
             for (int i = start; i < end; i++) {
                 skulls.add(buildSkullSyncOrAsync(players.get(i)));
             }
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            plugin.getScheduler().runTask(plugin, () -> {
                 for (int i = 0; i < skulls.size(); i++) {
                     inventory.setItem(i, skulls.get(i));
                 }
@@ -226,7 +224,7 @@ public class PlayerSelectorMenu implements Menu, Listener {
     }
 
     private void applyAndNotify(OfflinePlayer target, DisguiseProfile profile) {
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        plugin.getScheduler().runTask(plugin, () -> {
             plugin.getDisguiseApplier().applyDisguise(viewer, profile);
             MessageManager msg = plugin.getMessageManager();
             viewer.sendMessage(msg.get("messages.copied-player", "name", target.getName()));

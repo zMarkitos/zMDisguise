@@ -8,6 +8,17 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+/**
+ * Applies a disguise to a player.
+ *
+ * <p>Skin fetching is performed asynchronously. Profile and visual changes are
+ * applied on the correct thread via {@link dev.zm.disguise.scheduler.SchedulerAdapter},
+ * which makes this class safe on both Paper and Folia.
+ *
+ * <p>After applying a disguise the proxy is notified via
+ * {@link dev.zm.disguise.velocity.VelocityMessenger} so the skin and name
+ * are also updated on Velocity / BungeeCord.
+ */
 public class DisguiseApplier {
 
     private final DisguiseService disguiseService;
@@ -19,7 +30,7 @@ public class DisguiseApplier {
     }
 
     public void applyDisguise(Player player, DisguiseProfile profile) {
-        // Register disguise in service
+        // Register disguise in service immediately (thread-safe ConcurrentHashMap)
         disguiseService.addDisguise(player, profile);
 
         // Apply LuckPerms transient groups
@@ -31,7 +42,8 @@ public class DisguiseApplier {
         String skinName = profile.getSkin() != null ? profile.getSkin() : profile.getName();
 
         if (skinName != null && !skinName.isEmpty()) {
-            Bukkit.getScheduler().runTaskAsynchronously(zMDisguise.getInstance(), () -> {
+            // Fetch skin off the main thread
+            zMDisguise.getInstance().getScheduler().runTaskAsync(zMDisguise.getInstance(), () -> {
                 PlayerProfile skinProfile = Bukkit.createProfile(skinName);
                 boolean hasSkin = false;
                 try {
@@ -41,9 +53,10 @@ public class DisguiseApplier {
                 }
 
                 final boolean finalHasSkin = hasSkin;
-                Bukkit.getScheduler().runTask(zMDisguise.getInstance(), () -> {
-                    applyProfileAndRefresh(player, profile, profile.getName(), skinProfile, finalHasSkin);
-                });
+                // Back on entity thread (Folia-safe) to touch player state
+                zMDisguise.getInstance().getScheduler().runEntityTask(
+                        zMDisguise.getInstance(), player,
+                        () -> applyProfileAndRefresh(player, profile, profile.getName(), skinProfile, finalHasSkin));
             });
         } else {
             applyProfileAndRefresh(player, profile, profile.getName(), null, false);
@@ -52,6 +65,7 @@ public class DisguiseApplier {
 
     private void applyProfileAndRefresh(Player player, DisguiseProfile profile,
             String fakeName, PlayerProfile skinProfile, boolean hasSkin) {
+
         PlayerProfile paperProfile = player.getPlayerProfile();
 
         if (fakeName != null) {
@@ -75,6 +89,9 @@ public class DisguiseApplier {
         }
 
         refreshManager.refreshPlayer(player);
+
+        // Notify Velocity / BungeeCord proxy about the new disguise
+        zMDisguise.getInstance().getVelocityMessenger().sendDisguise(player, profile);
     }
 
     /** Exposed for manual refresh calls. */

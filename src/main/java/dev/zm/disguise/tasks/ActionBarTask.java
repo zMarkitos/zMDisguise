@@ -8,9 +8,8 @@ import dev.zm.disguise.zMDisguise;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
-public class ActionBarTask extends BukkitRunnable {
+public class ActionBarTask {
 
     private final zMDisguise plugin;
     private final DisguiseService disguiseService;
@@ -20,7 +19,7 @@ public class ActionBarTask extends BukkitRunnable {
         this.disguiseService = plugin.getDisguiseService();
     }
 
-    @Override
+    /** Called by the scheduler on each tick interval. */
     public void run() {
         SettingsManager cfg = plugin.getSettingsManager();
         if (!cfg.isActionBarEnabled())

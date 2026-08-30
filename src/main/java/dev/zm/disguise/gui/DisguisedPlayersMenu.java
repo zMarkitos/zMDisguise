@@ -55,10 +55,10 @@ public class DisguisedPlayersMenu implements Menu, Listener {
             return;
         }
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getScheduler().runTaskAsync(plugin, () -> {
             // Build skull items off-thread (profile lookup can be slow)
             List<ItemStack> skulls = buildSkulls();
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            plugin.getScheduler().runTask(plugin, () -> {
                 open(viewer);
                 for (int i = 0; i < Math.min(skulls.size(), inventory.getSize() - 9); i++) {
                     inventory.setItem(i, skulls.get(i));

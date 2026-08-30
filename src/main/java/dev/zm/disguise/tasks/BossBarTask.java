@@ -9,13 +9,12 @@ import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class BossBarTask extends BukkitRunnable {
+public class BossBarTask {
 
     private final zMDisguise plugin;
     private final DisguiseService disguiseService;
@@ -26,7 +25,7 @@ public class BossBarTask extends BukkitRunnable {
         this.disguiseService = plugin.getDisguiseService();
     }
 
-    @Override
+    /** Called by the scheduler on each tick interval. */
     public void run() {
         SettingsManager cfg = plugin.getSettingsManager();
         if (!cfg.isBossBarEnabled())
@@ -42,7 +41,6 @@ public class BossBarTask extends BukkitRunnable {
             }
         }
 
-        // Remove for offline players
         activeBossBars.keySet().removeIf(uuid -> Bukkit.getPlayer(uuid) == null);
     }
 
@@ -80,7 +78,7 @@ public class BossBarTask extends BukkitRunnable {
         }
     }
 
-    /** Call this method when the player removes their disguise. */
+    /** Removes the BossBar for a player (called when they un-disguise). */
     public void removeBossBar(Player player) {
         BossBar bossBar = activeBossBars.remove(player.getUniqueId());
         if (bossBar != null) {

@@ -16,14 +16,18 @@ import dev.zm.disguise.listeners.MenuClickListener;
 import dev.zm.disguise.listeners.PlayerJoinListener;
 import dev.zm.disguise.listeners.PlayerQuitListener;
 import dev.zm.disguise.refresh.RefreshManager;
+import dev.zm.disguise.scheduler.SchedulerAdapter;
+import dev.zm.disguise.scheduler.SchedulerAdapterFactory;
 import dev.zm.disguise.storage.StorageService;
 import dev.zm.disguise.storage.YamlStorage;
 import dev.zm.disguise.tasks.ActionBarTask;
 import dev.zm.disguise.tasks.BossBarTask;
 import dev.zm.disguise.utils.UpdateChecker;
+import dev.zm.disguise.velocity.VelocityMessenger;
 import org.bukkit.Bukkit;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bstats.bukkit.Metrics;
 
 public class zMDisguise extends JavaPlugin {
 
@@ -41,11 +45,21 @@ public class zMDisguise extends JavaPlugin {
     private BossBarTask bossBarTask;
     private ActionBarTask actionBarTask;
     private UpdateChecker updateChecker;
+    private SchedulerAdapter schedulerAdapter;
+    private VelocityMessenger velocityMessenger;
+    private Metrics metrics;
+
+    // Task handles for cancellation on disable
+    private SchedulerAdapter.TaskHandle bossBarHandle;
+    private SchedulerAdapter.TaskHandle actionBarHandle;
 
     @Override
     public void onEnable() {
         long startTime = System.currentTimeMillis();
         instance = this;
+
+        // Detect runtime environment (Folia vs Paper)
+        schedulerAdapter = SchedulerAdapterFactory.create();
 
         // Config & language files
         settingsManager = new SettingsManager(this);
@@ -64,7 +78,19 @@ public class zMDisguise extends JavaPlugin {
         disguiseApplier = new DisguiseApplier(disguiseService, refreshManager);
         disguiseRemover = new DisguiseRemover(disguiseService, refreshManager);
 
-        // Commands
+        velocityMessenger = new VelocityMessenger(this);
+        velocityMessenger.register();
+
+        int pluginId = 33747;
+        metrics = new Metrics(this, pluginId);
+
+        metrics.addCustomChart(new org.bstats.charts.SimplePie("platform", () -> {
+            return SchedulerAdapterFactory.isFolia() ? "Folia" : "Paper";
+        }));
+        metrics.addCustomChart(new org.bstats.charts.SimplePie("keep_on_relog", () -> {
+            return settingsManager.keepDisguiseOnRelog() ? "Enabled" : "Disabled";
+        }));
+
         ZMDisguiseCommand zmdCmd = new ZMDisguiseCommand(this);
         getCommand("zmdisguise").setExecutor(zmdCmd);
         getCommand("zmdisguise").setTabCompleter(zmdCmd);
@@ -77,21 +103,18 @@ public class zMDisguise extends JavaPlugin {
         getCommand("undisguise").setExecutor(undCmd);
         getCommand("undisguise").setTabCompleter(undCmd);
 
-        // Events
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerQuitListener(this), this);
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
         getServer().getPluginManager().registerEvents(new MenuClickListener(this), this);
 
-        // Repeating tasks
         int bossInterval = settingsManager.getBossBarInterval();
         int actionInterval = settingsManager.getActionBarInterval();
         bossBarTask = new BossBarTask(this);
         actionBarTask = new ActionBarTask(this);
-        bossBarTask.runTaskTimer(this, 20L, bossInterval);
-        actionBarTask.runTaskTimer(this, 20L, actionInterval);
+        bossBarHandle = schedulerAdapter.runTaskTimer(this, bossBarTask::run, 20L, bossInterval);
+        actionBarHandle = schedulerAdapter.runTaskTimer(this, actionBarTask::run, 20L, actionInterval);
 
-        // Public API
         DisguiseAPIImpl.init(this);
 
         updateChecker = new UpdateChecker(this, 136779);
@@ -105,26 +128,33 @@ public class zMDisguise extends JavaPlugin {
     public void onDisable() {
         long startTime = System.currentTimeMillis();
 
-        if (bossBarTask != null)
-            bossBarTask.cancel();
-        if (actionBarTask != null)
-            actionBarTask.cancel();
+        if (bossBarHandle != null)
+            bossBarHandle.cancel();
+        if (actionBarHandle != null)
+            actionBarHandle.cancel();
+        if (settingsManager != null) {
+            boolean keep = settingsManager.keepDisguiseOnRelog();
+            for (org.bukkit.entity.Player player : getServer().getOnlinePlayers()) {
+                if (disguiseService.isDisguised(player)) {
+                    if (keep) {
+                        storageService.save(player.getUniqueId(), disguiseService.getDisguise(player));
+                    } else {
+                        storageService.delete(player.getUniqueId());
+                    }
 
-        // Persist or remove disguises based on config
-        if (settingsManager != null && settingsManager.keepDisguiseOnRelog()) {
-            for (org.bukkit.entity.Player player : getServer().getOnlinePlayers()) {
-                if (disguiseService.isDisguised(player)) {
-                    storageService.save(player.getUniqueId(), disguiseService.getDisguise(player));
-                }
-            }
-        } else if (settingsManager != null) {
-            for (org.bukkit.entity.Player player : getServer().getOnlinePlayers()) {
-                if (disguiseService.isDisguised(player)) {
-                    disguiseRemover.removeDisguise(player);
-                    storageService.delete(player.getUniqueId());
+                    com.destroystokyo.paper.profile.PlayerProfile original = disguiseService.getOriginalProfile(player);
+                    if (original != null) {
+                        player.setPlayerProfile(original);
+                    }
+                    if (velocityMessenger != null) {
+                        velocityMessenger.sendUndisguise(player);
+                    }
                 }
             }
         }
+
+        if (velocityMessenger != null)
+            velocityMessenger.unregister();
 
         if (storageService != null)
             storageService.close();
@@ -141,15 +171,18 @@ public class zMDisguise extends JavaPlugin {
         String papiStr = hookManager.hasPlaceholderAPI() ? "<color:#2ECC71>Hooked" : "<color:#E74C3C>Not found";
         String srStr = hookManager.hasSkinsRestorer() ? "<color:#2ECC71>Hooked" : "<color:#E74C3C>Not found";
         String keepStr = settingsManager.keepDisguiseOnRelog() ? "<color:#2ECC71>Enabled" : "<color:#E74C3C>Disabled";
+        String foliaStr = SchedulerAdapterFactory.isFolia() ? "<color:#2ECC71>Folia" : "<color:#6C8EBF>Paper";
 
         c.sendMessage(mm("<dark_gray>──────────────────────────────────────────"));
         c.sendMessage(mm("<gradient:#00D76B:#00FF7F><b>zMDisguise</b></gradient> <gray>v" + version
                 + " <dark_gray>by <white>" + author));
         c.sendMessage(mm(""));
+        c.sendMessage(mm("  <dark_gray>• <gray>Platform:         " + foliaStr));
         c.sendMessage(mm("  <dark_gray>• <gray>LuckPerms:        " + lpStr));
         c.sendMessage(mm("  <dark_gray>• <gray>PlaceholderAPI:   " + papiStr));
         c.sendMessage(mm("  <dark_gray>• <gray>SkinsRestorer:    " + srStr));
         c.sendMessage(mm("  <dark_gray>• <gray>Keep on relog:    " + keepStr));
+        c.sendMessage(mm("  <dark_gray>• <gray>Velocity channel: <color:#2ECC71>Registered"));
         c.sendMessage(mm(""));
         c.sendMessage(mm("<color:#2ECC71>✔ <white>Plugin enabled successfully <gray>(" + ms + "ms)"));
         c.sendMessage(mm("<dark_gray>──────────────────────────────────────────"));
@@ -211,5 +244,13 @@ public class zMDisguise extends JavaPlugin {
 
     public BossBarTask getBossBarTask() {
         return bossBarTask;
+    }
+
+    public SchedulerAdapter getScheduler() {
+        return schedulerAdapter;
+    }
+
+    public VelocityMessenger getVelocityMessenger() {
+        return velocityMessenger;
     }
 }

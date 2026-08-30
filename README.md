@@ -1,11 +1,12 @@
 # zMDisguise
 
-A modern and fully configurable disguise plugin for **Paper** servers.
+A modern and fully configurable disguise plugin for **Paper, Folia, and Velocity** servers.
 
 zMDisguise allows players to change their identity by disguising themselves as other players, including their **display name**, **skin**, and optionally their **LuckPerms groups**. It features an intuitive GUI, disguise persistence, PlaceholderAPI support, and much more.
 
 ## ✨ Features
 
+- **Multi-Platform Support**: Works on Paper, Folia, and integrates with Velocity/BungeeCord proxies for network-wide disguises!
 - Complete and intuitive GUI.
 - Change display name and skin.
 - Copy another player's complete identity.
@@ -27,13 +28,14 @@ zMDisguise allows players to change their identity by disguising themselves as o
 ## 📦 Requirements
 
 - Java 21+
-- Paper 1.21+
+- Paper 1.19+ (or Folia)
 
 ### Optional Dependencies
 
 - LuckPerms
 - PlaceholderAPI
 - SkinsRestorer
+- Velocity (Proxy-side for global tablist sync)
 
 ## 📥 Installation
 

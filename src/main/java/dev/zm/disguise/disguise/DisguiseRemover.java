@@ -4,13 +4,6 @@ import dev.zm.disguise.refresh.RefreshManager;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 
-/**
- * Removes a disguise and fully restores the player's original identity:
- * - Restores the original PlayerProfile (name + skin).
- * - Resets the Adventure display name and player-list name.
- * - Triggers a visibility refresh for all nearby players.
- * - Cleans up LuckPerms transient groups.
- */
 public class DisguiseRemover {
 
     private final DisguiseService disguiseService;
@@ -46,5 +39,7 @@ public class DisguiseRemover {
         disguiseService.removeDisguise(player);
 
         refreshManager.refreshPlayer(player);
+
+        dev.zm.disguise.zMDisguise.getInstance().getVelocityMessenger().sendUndisguise(player);
     }
 }

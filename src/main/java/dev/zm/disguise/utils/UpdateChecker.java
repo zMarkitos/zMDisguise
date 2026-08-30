@@ -1,7 +1,6 @@
 package dev.zm.disguise.utils;
 
 import dev.zm.disguise.zMDisguise;
-import org.bukkit.Bukkit;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -21,7 +20,7 @@ public class UpdateChecker {
     }
 
     public void fetch() {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getScheduler().runTaskAsync(plugin, () -> {
             try (InputStream inputStream = new URL(
                     "https://api.spigotmc.org/legacy/update.php?resource=" + this.resourceId).openStream();
                     Scanner scanner = new Scanner(inputStream)) {

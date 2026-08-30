@@ -75,7 +75,7 @@ public class DisguiseCommand implements CommandExecutor, TabCompleter {
         }
         DisguiseProfile active = plugin.getDisguiseService().getDisguise(player);
 
-        org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getScheduler().runTaskAsync(plugin, () -> {
             plugin.getStorageService().saveSavedProfile(player.getUniqueId(), saveName, active);
             player.sendMessage(plugin.getMessageManager().get("messages.saved-success", "name", saveName));
         });
@@ -150,8 +150,8 @@ public class DisguiseCommand implements CommandExecutor, TabCompleter {
         }
 
         // LuckPerms lookups and offline player scans can be slow, run off the main
-        // thread
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        // thread (Folia-safe via SchedulerAdapter)
+        plugin.getScheduler().runTaskAsync(plugin, () -> {
             DisguiseProfile profile = new DisguiseProfile(target.getUniqueId());
             profile.setName(fakeName);
             profile.setSkin(fakeName);
@@ -170,7 +170,7 @@ public class DisguiseCommand implements CommandExecutor, TabCompleter {
                 }
             }
 
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            plugin.getScheduler().runTask(plugin, () -> {
                 if (!target.isOnline())
                     return; // target left while we were resolving groups
                 finalizeDisguise(sender, target, fakeName, profile, disguisingSelf);
