@@ -1,23 +1,18 @@
 package dev.zm.disguise.disguise;
 
 import com.destroystokyo.paper.profile.PlayerProfile;
+import dev.zm.disguise.hooks.LuckPermsHook;
 import dev.zm.disguise.models.DisguiseProfile;
 import dev.zm.disguise.refresh.RefreshManager;
 import dev.zm.disguise.zMDisguise;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 /**
- * Applies a disguise to a player.
- *
- * <p>Skin fetching is performed asynchronously. Profile and visual changes are
- * applied on the correct thread via {@link dev.zm.disguise.scheduler.SchedulerAdapter},
- * which makes this class safe on both Paper and Folia.
- *
- * <p>After applying a disguise the proxy is notified via
- * {@link dev.zm.disguise.velocity.VelocityMessenger} so the skin and name
- * are also updated on Velocity / BungeeCord.
+ * Applies a disguise to a player: swaps LuckPerms groups, name and skin, then refreshes the
+ * player for everyone. Skin fetching is asynchronous; player state is touched on the entity thread.
  */
 public class DisguiseApplier {
 
@@ -30,67 +25,109 @@ public class DisguiseApplier {
     }
 
     public void applyDisguise(Player player, DisguiseProfile profile) {
-        // Register disguise in service immediately (thread-safe ConcurrentHashMap)
+        zMDisguise plugin = zMDisguise.getInstance();
         disguiseService.addDisguise(player, profile);
 
-        // Apply LuckPerms transient groups
-        dev.zm.disguise.hooks.LuckPermsHook lp = zMDisguise.getInstance().getHookManager().getLuckPermsHook();
+        LuckPermsHook lp = plugin.getHookManager().getLuckPermsHook();
         if (lp != null && lp.isEnabled()) {
-            lp.applyTransientGroups(player, profile.getGroups());
+            profile.setRealGroups(lp.applyDisguiseGroups(player, profile.getGroups(), profile.getRealGroups(),
+                    plugin.getSettingsManager().keepPermissionsWhileDisguised()));
         }
+        // Persist right away so a crash or kill can never leave the player without their real groups.
+        plugin.getStorageService().save(player.getUniqueId(), profile);
 
         String skinName = profile.getSkin() != null ? profile.getSkin() : profile.getName();
+        if (skinName == null || skinName.isEmpty()) {
+            applyProfileAndRefresh(player, profile, null, false);
+            return;
+        }
 
-        if (skinName != null && !skinName.isEmpty()) {
-            // Fetch skin off the main thread
-            zMDisguise.getInstance().getScheduler().runTaskAsync(zMDisguise.getInstance(), () -> {
-                PlayerProfile skinProfile = Bukkit.createProfile(skinName);
-                boolean hasSkin = false;
+        // Someone with that skin online (or cached with textures)? Copy their profile directly:
+        // no Mojang round-trip, and it also covers Bedrock/Floodgate skins Mojang does not know.
+        PlayerProfile local = localProfileWithTextures(skinName, player);
+        if (local != null) {
+            applyProfileAndRefresh(player, profile, local, true);
+            return;
+        }
+
+        plugin.getScheduler().runTaskAsync(plugin, () -> {
+            // By uuid when we know the Java account (name changes do not matter then), else by name.
+            java.util.UUID byUuid = javaUuid(profile.getSkinUuid());
+            PlayerProfile skinProfile = byUuid != null ? Bukkit.createProfile(byUuid, skinName) : Bukkit.createProfile(skinName);
+            boolean hasSkin = false;
+            try {
+                skinProfile.complete(); // blocking Mojang lookup
+                hasSkin = skinProfile.hasTextures();
+            } catch (Exception ignored) {
+            }
+            if (!hasSkin && byUuid != null) {
                 try {
-                    skinProfile.complete(); // blocking — fetches from Mojang
+                    skinProfile = Bukkit.createProfile(skinName);
+                    skinProfile.complete();
                     hasSkin = skinProfile.hasTextures();
                 } catch (Exception ignored) {
                 }
-
-                final boolean finalHasSkin = hasSkin;
-                // Back on entity thread (Folia-safe) to touch player state
-                zMDisguise.getInstance().getScheduler().runEntityTask(
-                        zMDisguise.getInstance(), player,
-                        () -> applyProfileAndRefresh(player, profile, profile.getName(), skinProfile, finalHasSkin));
+            }
+            final boolean finalHasSkin = hasSkin;
+            final PlayerProfile finalProfile = skinProfile;
+            plugin.getScheduler().runEntityTask(plugin, player, () -> {
+                if (!player.isOnline() || disguiseService.getDisguise(player) != profile)
+                    return; // left, or disguised as something else while we were fetching
+                applyProfileAndRefresh(player, profile, finalProfile, finalHasSkin);
             });
-        } else {
-            applyProfileAndRefresh(player, profile, profile.getName(), null, false);
+        });
+    }
+
+    /** The uuid if it is a real Java (v4) account; Bedrock/Floodgate and offline-mode ids have nothing on Mojang. */
+    private static java.util.UUID javaUuid(String raw) {
+        if (raw == null || raw.isEmpty())
+            return null;
+        try {
+            java.util.UUID u = java.util.UUID.fromString(raw);
+            return u.version() == 4 && u.getMostSignificantBits() != 0L ? u : null;
+        } catch (IllegalArgumentException e) {
+            return null;
         }
     }
 
-    private void applyProfileAndRefresh(Player player, DisguiseProfile profile,
-            String fakeName, PlayerProfile skinProfile, boolean hasSkin) {
-
-        PlayerProfile paperProfile = player.getPlayerProfile();
-
-        if (fakeName != null) {
-            paperProfile.setName(fakeName);
+    private PlayerProfile localProfileWithTextures(String name, Player self) {
+        Player online = Bukkit.getPlayerExact(name);
+        if (online != null && !online.equals(self)) {
+            PlayerProfile p = online.getPlayerProfile();
+            if (p.hasTextures())
+                return p;
         }
+        OfflinePlayer cached = Bukkit.getOfflinePlayerIfCached(name);
+        if (cached != null && !cached.getUniqueId().equals(self.getUniqueId())) {
+            PlayerProfile p = cached.getPlayerProfile();
+            if (p.hasTextures())
+                return p;
+        }
+        return null;
+    }
 
-        // Apply skin textures
+    private void applyProfileAndRefresh(Player player, DisguiseProfile profile, PlayerProfile skinProfile,
+            boolean hasSkin) {
+        PlayerProfile paperProfile = player.getPlayerProfile();
+        if (profile.getName() != null) {
+            paperProfile.setName(profile.getName());
+        }
         if (hasSkin && skinProfile != null) {
             paperProfile.setTextures(skinProfile.getTextures());
-        } else if (skinProfile != null) {
-            paperProfile.getTextures().clear();
+        } else {
+            paperProfile.getTextures().clear(); // default Steve/Alex: showing the real skin would give the player away
         }
-
         player.setPlayerProfile(paperProfile);
 
-        // Set the visual display name to the clean disguise name (no alias suffix)
+        // Plain fake name only: the rank prefix now comes from LuckPerms like for any other player,
+        // so putting it in the display name would show it twice in chat and tab.
         if (profile.getName() != null) {
-            String visual = (profile.getPrefix() != null ? profile.getPrefix() : "") + profile.getName();
-            player.displayName(dev.zm.disguise.config.MessageManager.colorize(visual));
-            player.playerListName(dev.zm.disguise.config.MessageManager.colorize(visual));
+            player.displayName(Component.text(profile.getName()));
+            player.playerListName(Component.text(profile.getName()));
+            zMDisguise.getInstance().getHookManager().getTabHook().setTabListName(player.getUniqueId(), profile.getName());
         }
 
         refreshManager.refreshPlayer(player);
-
-        // Notify Velocity / BungeeCord proxy about the new disguise
         zMDisguise.getInstance().getVelocityMessenger().sendDisguise(player, profile);
     }
 

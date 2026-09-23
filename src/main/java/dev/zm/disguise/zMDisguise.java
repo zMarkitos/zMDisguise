@@ -132,23 +132,21 @@ public class zMDisguise extends JavaPlugin {
             bossBarHandle.cancel();
         if (actionBarHandle != null)
             actionBarHandle.cancel();
-        if (settingsManager != null) {
+        if (settingsManager != null && disguiseService != null) {
             boolean keep = settingsManager.keepDisguiseOnRelog();
             for (org.bukkit.entity.Player player : getServer().getOnlinePlayers()) {
-                if (disguiseService.isDisguised(player)) {
-                    if (keep) {
-                        storageService.save(player.getUniqueId(), disguiseService.getDisguise(player));
-                    } else {
-                        storageService.delete(player.getUniqueId());
-                    }
-
-                    com.destroystokyo.paper.profile.PlayerProfile original = disguiseService.getOriginalProfile(player);
-                    if (original != null) {
-                        player.setPlayerProfile(original);
-                    }
-                    if (velocityMessenger != null) {
-                        velocityMessenger.sendUndisguise(player);
-                    }
+                if (!disguiseService.isDisguised(player))
+                    continue;
+                if (keep) {
+                    storageService.save(player.getUniqueId(), disguiseService.getDisguise(player));
+                } else {
+                    storageService.delete(player.getUniqueId());
+                }
+                // Restores the profile, the names and the LuckPerms groups: nothing disguised
+                // may survive a shutdown, otherwise another plugin can persist it.
+                disguiseRemover.restoreIdentity(player, true);
+                if (velocityMessenger != null) {
+                    velocityMessenger.sendUndisguise(player);
                 }
             }
         }

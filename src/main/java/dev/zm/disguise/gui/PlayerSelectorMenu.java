@@ -68,7 +68,7 @@ public class PlayerSelectorMenu implements Menu, Listener {
             }
 
             // Sort by last played (most recent first)
-            all.sort(Comparator.comparingLong(OfflinePlayer::getLastPlayed).reversed());
+            all.sort(Comparator.comparingLong(OfflinePlayer::getLastSeen).reversed());
 
             this.players.addAll(all);
 
@@ -198,6 +198,7 @@ public class PlayerSelectorMenu implements Menu, Listener {
         DisguiseProfile profile = new DisguiseProfile(viewer.getUniqueId());
         profile.setName(target.getName());
         profile.setSkin(target.getName());
+        profile.setSkinUuid(target.getUniqueId().toString());
 
         if (lp != null && lp.isEnabled()) {
             // Load all groups asynchronously

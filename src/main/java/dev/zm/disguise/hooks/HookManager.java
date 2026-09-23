@@ -12,11 +12,12 @@ public class HookManager {
     private LuckPermsHook luckPermsHook;
     private PlaceholderHook placeholderHook;
     private SkinHook skinHook;
+    private TabHook tabHook;
 
     public HookManager(zMDisguise plugin) {
         if (Bukkit.getPluginManager().getPlugin("LuckPerms") != null) {
             luckPermsHook = new LuckPermsHook();
-            luckPermsHook.register();
+            luckPermsHook.register(plugin);
         }
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -24,6 +25,7 @@ public class HookManager {
             placeholderHook.register();
         }
 
+        tabHook = new TabHook();
         if (Bukkit.getPluginManager().getPlugin("SkinsRestorer") != null) {
             skinHook = new SkinHook();
             skinHook.register();
@@ -36,6 +38,10 @@ public class HookManager {
 
     public PlaceholderHook getPlaceholderHook() {
         return placeholderHook;
+    }
+
+    public TabHook getTabHook() {
+        return tabHook;
     }
 
     public SkinHook getSkinHook() {

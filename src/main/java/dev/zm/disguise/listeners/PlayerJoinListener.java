@@ -20,10 +20,18 @@ public class PlayerJoinListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         var player = event.getPlayer();
 
-        if (plugin.getSettingsManager().keepDisguiseOnRelog()) {
-            var profile = plugin.getStorageService().load(player.getUniqueId());
-            if (profile != null) {
+        var profile = plugin.getStorageService().load(player.getUniqueId());
+        if (profile != null) {
+            if (plugin.getSettingsManager().keepDisguiseOnRelog()) {
+                // applyDisguise merges profile.getRealGroups() back in before detaching again
                 plugin.getDisguiseApplier().applyDisguise(player, profile);
+            } else {
+                // Disguise not kept: only make sure the real groups are back, then forget the entry.
+                dev.zm.disguise.hooks.LuckPermsHook lp = plugin.getHookManager().getLuckPermsHook();
+                if (lp != null && lp.isEnabled() && !profile.getRealGroups().isEmpty()) {
+                    lp.restoreRealGroups(player.getUniqueId(), profile.getRealGroups());
+                }
+                plugin.getStorageService().delete(player.getUniqueId());
             }
         }
 

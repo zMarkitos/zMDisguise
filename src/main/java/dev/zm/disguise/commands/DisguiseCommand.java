@@ -158,6 +158,7 @@ public class DisguiseCommand implements CommandExecutor, TabCompleter {
 
             org.bukkit.OfflinePlayer source = resolveOfflinePlayerByName(fakeName);
             if (source != null) {
+                profile.setSkinUuid(source.getUniqueId().toString());
                 List<String> groups = lp.getAllGroupsAsync(source.getUniqueId()).join();
                 if (groups != null && !groups.isEmpty()) {
                     profile.setGroups(groups);
@@ -186,6 +187,9 @@ public class DisguiseCommand implements CommandExecutor, TabCompleter {
         Player online = Bukkit.getPlayerExact(name);
         if (online != null)
             return online;
+        org.bukkit.OfflinePlayer cached = Bukkit.getOfflinePlayerIfCached(name);
+        if (cached != null)
+            return cached;
         for (org.bukkit.OfflinePlayer op : Bukkit.getOfflinePlayers()) {
             if (name.equalsIgnoreCase(op.getName())) {
                 return op;

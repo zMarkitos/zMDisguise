@@ -8,10 +8,12 @@ public class DisguiseProfile {
     private final UUID playerUuid;
     private String name;
     private String skin;
+    private String skinUuid; // Java account uuid to fetch the skin by; survives name changes
     private String prefix;
     private String suffix;
     private String primaryGroup;
     private List<String> groups = new ArrayList<>();
+    private List<String> realGroups = new ArrayList<>();
     private long disguisedAt = System.currentTimeMillis();
 
     public DisguiseProfile(UUID playerUuid) {
@@ -36,6 +38,14 @@ public class DisguiseProfile {
 
     public void setSkin(String skin) {
         this.skin = skin;
+    }
+
+    public String getSkinUuid() {
+        return skinUuid;
+    }
+
+    public void setSkinUuid(String skinUuid) {
+        this.skinUuid = skinUuid;
     }
 
     public String getPrefix() {
@@ -74,6 +84,15 @@ public class DisguiseProfile {
         if (!groups.contains(group)) {
             groups.add(group);
         }
+    }
+
+    /** The player's own LuckPerms groups, detached while disguised; restored on undisguise. */
+    public List<String> getRealGroups() {
+        return realGroups;
+    }
+
+    public void setRealGroups(List<String> realGroups) {
+        this.realGroups = realGroups == null ? new ArrayList<>() : new ArrayList<>(realGroups);
     }
 
     public long getDisguisedAt() {

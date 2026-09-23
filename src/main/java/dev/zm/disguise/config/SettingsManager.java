@@ -49,6 +49,16 @@ public class SettingsManager {
         return cfg().getBoolean("keep-disguise-on-relog", false);
     }
 
+    /** Keep the player's effective permissions while disguised (their real groups are detached). */
+    public boolean keepPermissionsWhileDisguised() {
+        return cfg().getBoolean("keep-permissions-while-disguised", true);
+    }
+
+    /** Replace the server's chat format with "prefix name: message" for disguised players. Off by default. */
+    public boolean chatOverrideFormat() {
+        return cfg().getBoolean("chat.override-format", false);
+    }
+
     public boolean notifyAdmins() {
         return cfg().getBoolean("notify-admins", true);
     }
@@ -67,6 +77,36 @@ public class SettingsManager {
 
     public String getPermissionReload() {
         return PERMISSION_RELOAD;
+    }
+
+    public boolean notifyAdmins() {
+        return cfg().getBoolean("notify-admins", true);
+    }
+
+    public String getPermissionUse() {
+        return PERMISSION_USE;
+    }
+
+    public String getPermissionAdmin() {
+        return PERMISSION_ADMIN;
+    }
+
+    public String getPermissionNotify() {
+        return PERMISSION_NOTIFY;
+    }
+
+    public String getPermissionReload() {
+        return PERMISSION_RELOAD;
+    }
+
+    /** Senders with this permission may still target disguised players in guarded commands. */
+    public String getPermissionBypass() {
+        return "zmdisguise.bypass";
+    }
+
+    /** Commands that must not resolve a disguise name as a target (tp & friends). */
+    public java.util.List<String> hideFromCommands() {
+        return cfg().getStringList("hide-from-commands");
     }
 
     public boolean isBossBarEnabled() {

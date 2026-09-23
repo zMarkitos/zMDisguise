@@ -28,7 +28,7 @@ public class ChatListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
-        if (!disguiseService.isDisguised(player))
+        if (!plugin.getSettingsManager().chatOverrideFormat() || !disguiseService.isDisguised(player))
             return;
 
         DisguiseProfile profile = disguiseService.getDisguise(player);

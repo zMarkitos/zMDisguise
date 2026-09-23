@@ -24,6 +24,15 @@ language: 'EN'
 # Keep the disguise after reconnecting.
 keep-disguise-on-relog: true
 
+# While disguised the player's real LuckPerms groups are detached so TAB/chat show the disguised
+# rank. With this on, their effective permissions are kept (as transient nodes) so they lose nothing.
+keep-permissions-while-disguised: true
+
+chat:
+  # Replace the server's chat format for disguised players with "prefix name: message".
+  # Leave off when a chat plugin (EssentialsX Chat etc.) already formats chat with LuckPerms prefixes.
+  override-format: false
+
 # Notify players with the zmdisguise.notify permission when someone disguises.
 notify-admins: true
 

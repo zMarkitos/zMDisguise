@@ -3,7 +3,7 @@ version: '${project.version}'
 main: dev.zm.disguise.zMDisguise
 api-version: '1.19'
 folia-supported: true
-softdepend: [PlaceholderAPI, LuckPerms, SkinsRestorer]
+softdepend: [PlaceholderAPI, LuckPerms, SkinsRestorer, TAB]
 author: zMarkitos_
 description: >
   Lightweight disguise plugin for Paper, Folia and Velocity —

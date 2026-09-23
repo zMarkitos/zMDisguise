@@ -38,10 +38,12 @@ public class YamlStorage implements StorageService {
         String path = playerUuid.toString();
         config.set(path + ".name", profile.getName());
         config.set(path + ".skin", profile.getSkin());
+        config.set(path + ".skinUuid", profile.getSkinUuid());
         config.set(path + ".prefix", profile.getPrefix());
         config.set(path + ".suffix", profile.getSuffix());
         config.set(path + ".primaryGroup", profile.getPrimaryGroup());
         config.set(path + ".groups", profile.getGroups());
+        config.set(path + ".realGroups", profile.getRealGroups());
         try {
             config.save(storageFile);
         } catch (IOException e) {
@@ -57,9 +59,11 @@ public class YamlStorage implements StorageService {
         DisguiseProfile profile = new DisguiseProfile(playerUuid);
         profile.setName(config.getString(path + ".name"));
         profile.setSkin(config.getString(path + ".skin"));
+        profile.setSkinUuid(config.getString(path + ".skinUuid"));
         profile.setPrefix(config.getString(path + ".prefix"));
         profile.setSuffix(config.getString(path + ".suffix"));
         profile.setPrimaryGroup(config.getString(path + ".primaryGroup"));
+        profile.setRealGroups(config.getStringList(path + ".realGroups"));
         if (config.contains(path + ".groups")) {
             profile.setGroups(config.getStringList(path + ".groups"));
         } else if (config.contains(path + ".group")) {
@@ -89,6 +93,7 @@ public class YamlStorage implements StorageService {
         String path = "saved." + playerUuid.toString() + "." + saveName.toLowerCase();
         config.set(path + ".name", profile.getName());
         config.set(path + ".skin", profile.getSkin());
+        config.set(path + ".skinUuid", profile.getSkinUuid());
         config.set(path + ".prefix", profile.getPrefix());
         config.set(path + ".suffix", profile.getSuffix());
         config.set(path + ".primaryGroup", profile.getPrimaryGroup());
@@ -115,6 +120,7 @@ public class YamlStorage implements StorageService {
             String prefix = path + "." + saveName;
             profile.setName(config.getString(prefix + ".name"));
             profile.setSkin(config.getString(prefix + ".skin"));
+            profile.setSkinUuid(config.getString(prefix + ".skinUuid"));
             profile.setPrefix(config.getString(prefix + ".prefix"));
             profile.setSuffix(config.getString(prefix + ".suffix"));
             profile.setPrimaryGroup(config.getString(prefix + ".primaryGroup"));
