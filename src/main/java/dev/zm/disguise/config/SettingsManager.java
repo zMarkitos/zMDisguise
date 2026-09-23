@@ -54,29 +54,9 @@ public class SettingsManager {
         return cfg().getBoolean("keep-permissions-while-disguised", true);
     }
 
-    /** Replace the server's chat format with "prefix name: message" for disguised players. Off by default. */
+    /** Replace the server's chat format with "prefix name: message" for disguised players. */
     public boolean chatOverrideFormat() {
-        return cfg().getBoolean("chat.override-format", false);
-    }
-
-    public boolean notifyAdmins() {
-        return cfg().getBoolean("notify-admins", true);
-    }
-
-    public String getPermissionUse() {
-        return PERMISSION_USE;
-    }
-
-    public String getPermissionAdmin() {
-        return PERMISSION_ADMIN;
-    }
-
-    public String getPermissionNotify() {
-        return PERMISSION_NOTIFY;
-    }
-
-    public String getPermissionReload() {
-        return PERMISSION_RELOAD;
+        return cfg().getBoolean("chat.override-format", true);
     }
 
     public boolean notifyAdmins() {

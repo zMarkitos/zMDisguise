@@ -28,10 +28,16 @@ keep-disguise-on-relog: true
 # rank. With this on, their effective permissions are kept (as transient nodes) so they lose nothing.
 keep-permissions-while-disguised: true
 
+# Player-targeting commands that must not find a disguised player by their fake name
+# (otherwise /tp <fake name> lands on the disguised player). Namespaced forms (essentials:tp) match too.
+# Players with zmdisguise.bypass are exempt.
+hide-from-commands: [tp, tele, etele, teleport, eteleport, etp, tp2p, etp2p, tpo, etpo, tphere, s, etphere, tpohere, etpohere, tpa, call, ecall, etpa, tpask, etpask, tpahere, etpahere, tpaall, etpaall, tppos, etppos, tpoffline, otp, offlinetp, tpoff, etpoffline, getpos, coords, egetpos, position, eposition, whereami, ewhereami, getlocation, egetlocation, getloc, egetloc, seen, eseen, whois, ewhois, home, ehome, homes, ehomes]
+
 chat:
   # Replace the server's chat format for disguised players with "prefix name: message".
-  # Leave off when a chat plugin (EssentialsX Chat etc.) already formats chat with LuckPerms prefixes.
-  override-format: false
+  # Turn this off when a chat plugin (EssentialsX Chat etc.) already formats chat with the
+  # LuckPerms prefix, otherwise the rank is rendered twice.
+  override-format: true
 
 # Notify players with the zmdisguise.notify permission when someone disguises.
 notify-admins: true

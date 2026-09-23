@@ -106,6 +106,7 @@ public class zMDisguise extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerQuitListener(this), this);
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
+        getServer().getPluginManager().registerEvents(new dev.zm.disguise.listeners.CommandGuardListener(this), this);
         getServer().getPluginManager().registerEvents(new MenuClickListener(this), this);
 
         int bossInterval = settingsManager.getBossBarInterval();

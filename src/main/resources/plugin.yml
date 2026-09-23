@@ -28,6 +28,9 @@ permissions:
   zmdisguise.notify:
     description: Receive admin notifications when someone is disguised
     default: op
+  zmdisguise.bypass:
+    description: May still target disguised players with tp-style commands
+    default: false
   zmdisguise.reload:
     description: Allows reloading the plugin configuration
     default: op
